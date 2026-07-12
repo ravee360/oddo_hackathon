@@ -7,8 +7,13 @@ const DB_FILE = path.join(__dirname, '..', 'db.json');
 // Default Seed Data
 const DEFAULT_DB = {
   vehicles: [
-    { id: 'v1', regNo: 'VAN-05', name: 'Ford Transit Van', type: 'Van', maxCapacity: 500, odometer: 12500, acquisitionCost: 25000, status: 'Available' },
-    { id: 'v2', regNo: 'TRK-01', name: 'Volvo FH16 Truck', type: 'Heavy Truck', maxCapacity: 5000, odometer: 84300, acquisitionCost: 75000, status: 'Available' },
+    { id: 'v1', regNo: 'VAN-05', name: 'Ford Transit Van', type: 'Van', maxCapacity: 500, odometer: 12500, acquisitionCost: 25000, status: 'Available', documents: [
+      { id: 'doc1', name: 'Compliance Certificate 2026', type: 'Safety', size: '124 KB' },
+      { id: 'doc2', name: 'Comprehensive Insurance Policy', type: 'Insurance', size: '256 KB' }
+    ] },
+    { id: 'v2', regNo: 'TRK-01', name: 'Volvo FH16 Truck', type: 'Heavy Truck', maxCapacity: 5000, odometer: 84300, acquisitionCost: 75000, status: 'Available', documents: [
+      { id: 'doc3', name: 'Heavy Vehicle Permit', type: 'Registration', size: '88 KB' }
+    ] },
     { id: 'v3', regNo: 'VAN-02', name: 'Mercedes Sprinter', type: 'Van', maxCapacity: 1200, odometer: 45000, acquisitionCost: 32000, status: 'On Trip' },
     { id: 'v4', regNo: 'BOX-04', name: 'Isuzu NPR Box Truck', type: 'Box Truck', maxCapacity: 3000, odometer: 62000, acquisitionCost: 45000, status: 'In Shop' },
     { id: 'v5', regNo: 'SE-09', name: 'Toyota HiAce', type: 'Van', maxCapacity: 800, odometer: 95000, acquisitionCost: 22000, status: 'Retired' }
@@ -97,7 +102,9 @@ class JsonDb {
     if (!db[entity]) db[entity] = [];
     
     // Generate simple ID
-    record.id = entity.charAt(0) + Math.random().toString(36).substr(2, 9);
+    if (!record.id) {
+      record.id = entity.charAt(0) + Math.random().toString(36).substr(2, 9);
+    }
     db[entity].push(record);
     this.save(db);
     return record;

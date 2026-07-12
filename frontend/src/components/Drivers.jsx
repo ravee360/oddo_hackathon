@@ -9,6 +9,9 @@ export default function Drivers({ role, logAudit, showToast }) {
 
   // Modal forms
   const [showDriverModal, setShowDriverModal] = useState(false);
+  const [isSendingEmails, setIsSendingEmails] = useState(false);
+  const [sentEmailLogs, setSentEmailLogs] = useState([]);
+  const [showEmailLogsModal, setShowEmailLogsModal] = useState(false);
   const [dId, setDId] = useState('');
   const [dName, setDName] = useState('');
   const [dLicense, setDLicense] = useState('');
@@ -134,6 +137,26 @@ export default function Drivers({ role, logAudit, showToast }) {
     }
   };
 
+  const handleSendReminders = async () => {
+    setIsSendingEmails(true);
+    try {
+      const res = await fetch('/api/drivers/send-reminders', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        logAudit(`Triggered license expiry checks. Sent ${data.sentCount} email reminders.`);
+        showToast(`Scan complete. Sent ${data.sentCount} simulated emails.`, 'success');
+        setSentEmailLogs(data.emails);
+        setShowEmailLogsModal(true);
+      } else {
+        showToast('Failed to send email reminders.', 'error');
+      }
+    } catch (e) {
+      showToast('Network connection error.', 'error');
+    } finally {
+      setIsSendingEmails(false);
+    }
+  };
+
   const isEditable = role === 'Fleet Manager' || role === 'Safety Officer';
   const isDeletable = role === 'Fleet Manager';
   const today = new Date(CURRENT_DATE);
@@ -184,9 +207,14 @@ export default function Drivers({ role, logAudit, showToast }) {
               onChange={(e) => setSearchVal(e.target.value)}
             />
             {isEditable && (
-              <button onClick={handleOpenAdd} className="btn btn-primary" style={{ backgroundColor: 'var(--accent-color)' }}>
-                <i className="fa-solid fa-plus"></i> Add Driver
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={handleSendReminders} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }} disabled={isSendingEmails}>
+                  <i className="fa-solid fa-envelope"></i> {isSendingEmails ? 'Sending...' : 'Send Email Reminders'}
+                </button>
+                <button onClick={handleOpenAdd} className="btn btn-primary" style={{ backgroundColor: 'var(--accent-color)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <i className="fa-solid fa-plus"></i> Add Driver
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -227,7 +255,7 @@ export default function Drivers({ role, logAudit, showToast }) {
                   <tr
                     key={d.id}
                     style={{ backgroundColor: selectedDriverId === d.id ? 'rgba(217,119,6,0.05)' : '' }}
-                    onClick={() => selectDriverForOverride(d.id)}
+                    onClick={() => setSelectedDriverId(d.id)}
                   >
                     <td style={{ fontWeight: 600, cursor: 'pointer' }}>{d.name}</td>
                     <td style={{ fontFamily: 'monospace' }}>{d.licenseNo}</td>
@@ -400,6 +428,39 @@ export default function Drivers({ role, logAudit, showToast }) {
                 <button type="submit" className="btn btn-primary" style={{ backgroundColor: 'var(--accent-color)' }}>Save Profile</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sent Email Outbox Preview Modal */}
+      {showEmailLogsModal && (
+        <div className="modal-overlay" style={{ display: 'flex' }}>
+          <div className="modal-container" style={{ width: '600px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="modal-header">
+              <span className="modal-title">Sent Reminders Outbox (Simulated)</span>
+              <button onClick={() => setShowEmailLogsModal(false)} className="modal-close">&times;</button>
+            </div>
+            <div className="modal-body" style={{ overflowY: 'auto', flex: 1 }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                The safety system scanned all licenses and sent simulated emails to the following drivers:
+              </p>
+              {sentEmailLogs.map(email => (
+                <div key={email.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.25rem' }}>
+                    <span>To: <strong>{email.recipient}</strong></span>
+                    <span>Status: <span style={{ color: 'var(--success-color)' }}>{email.status}</span></span>
+                  </div>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.5rem' }}>Subject: {email.subject}</div>
+                  <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.1)', padding: '0.75rem', borderRadius: '4px', lineHeight: '1.4' }}>{email.body}</pre>
+                </div>
+              ))}
+              {sentEmailLogs.length === 0 && (
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>All driver licenses are valid. No reminders needed!</p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowEmailLogsModal(false)} className="btn btn-secondary">Close Outbox</button>
+            </div>
           </div>
         </div>
       )}

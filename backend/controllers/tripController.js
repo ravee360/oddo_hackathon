@@ -45,7 +45,7 @@ exports.addTrip = (req, res) => {
 
   const trips = db.getAll('trips');
   const nextNum = trips.length + 1;
-  const tripId = `tr00${nextNum}`;
+  const tripId = `t${nextNum}`;
 
   const record = db.add('trips', {
     id: tripId,

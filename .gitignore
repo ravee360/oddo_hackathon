@@ -9,6 +9,7 @@ Thumbs.db
 
 # Project exclusions
 backend/node_modules/
+backend/uploads/
 oddo_hackathon/
 *.log
 .gemini/

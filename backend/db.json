@@ -6,9 +6,29 @@
       "name": "Ford Transit Van",
       "type": "Van",
       "maxCapacity": 500,
-      "odometer": 13388,
+      "odometer": 12500,
       "acquisitionCost": 25000,
-      "status": "Available"
+      "status": "Available",
+      "documents": [
+        {
+          "id": "doc1",
+          "name": "Compliance Certificate 2026",
+          "type": "Safety",
+          "size": "124 KB"
+        },
+        {
+          "id": "doc2",
+          "name": "Comprehensive Insurance Policy",
+          "type": "Insurance",
+          "size": "256 KB"
+        },
+        {
+          "id": "doc_n1xit",
+          "name": "certificate-wp4ryk24cihn-1779053741 (1)",
+          "type": "Safety",
+          "size": "108 KB"
+        }
+      ]
     },
     {
       "id": "v2",
@@ -18,7 +38,15 @@
       "maxCapacity": 5000,
       "odometer": 84300,
       "acquisitionCost": 75000,
-      "status": "Available"
+      "status": "Available",
+      "documents": [
+        {
+          "id": "doc3",
+          "name": "Heavy Vehicle Permit",
+          "type": "Registration",
+          "size": "88 KB"
+        }
+      ]
     },
     {
       "id": "v3",
@@ -38,7 +66,23 @@
       "maxCapacity": 3000,
       "odometer": 62000,
       "acquisitionCost": 45000,
-      "status": "In Shop"
+      "status": "In Shop",
+      "documents": [
+        {
+          "id": "doc_kk1zv",
+          "name": "certificate-wp4ryk24cihn-1779053741 (1)",
+          "type": "Registration",
+          "size": "108 KB",
+          "url": "/uploads/vehicle_v4_1783844295597_certificate-wp4ryk24cihn-1779053741_(1).pdf"
+        },
+        {
+          "id": "doc_ti2jl",
+          "name": "TransitOps Smart Transport Operations Platform",
+          "type": "Registration",
+          "size": "1839 KB",
+          "url": "/uploads/vehicle_v4_1783844348895_TransitOps_Smart_Transport_Operations_Platform.pdf"
+        }
+      ]
     },
     {
       "id": "v5",
@@ -48,7 +92,15 @@
       "maxCapacity": 800,
       "odometer": 95000,
       "acquisitionCost": 22000,
-      "status": "Retired"
+      "status": "Retired",
+      "documents": [
+        {
+          "id": "doc_cizhv",
+          "name": "TransitOps Smart Transport Operations Platform",
+          "type": "Safety",
+          "size": "1839 KB"
+        }
+      ]
     }
   ],
   "drivers": [
@@ -148,21 +200,6 @@
       "fuelUsed": 50,
       "revenue": 2200,
       "date": "2026-07-08"
-    },
-    {
-      "id": "tp35savpx1",
-      "source": "alkm",
-      "destination": "dsmck",
-      "vehicleId": "v1",
-      "driverId": "d1",
-      "cargoWeight": 94,
-      "distance": 888,
-      "startOdo": 12500,
-      "endOdo": 13388,
-      "fuelUsed": 195,
-      "revenue": 54848,
-      "status": "Completed",
-      "date": "2026-07-12"
     }
   ],
   "maintenance": [
@@ -206,13 +243,6 @@
       "liters": 60,
       "cost": 120,
       "date": "2026-07-11"
-    },
-    {
-      "vehicleId": "v1",
-      "liters": 195,
-      "cost": 409.5,
-      "date": "2026-07-12",
-      "id": "fn2gn7zwgm"
     }
   ],
   "expenses": [
