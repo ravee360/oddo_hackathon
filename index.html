@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TransitOps - Smart Transport Operations Platform</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Font Awesome for modern UI icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js CDN for visual graphics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation & Controls Header -->
+  <header>
+    <div class="logo-section">
+      <i class="fa-solid fa-truck-fast"></i>
+      <h1>TransitOps</h1>
+    </div>
+    
+    <nav>
+      <ul>
+        <li><a class="nav-link active" data-tab="dashboard-sec"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+        <li><a class="nav-link" data-tab="vehicles-sec"><i class="fa-solid fa-bus"></i> Vehicles</a></li>
+        <li><a class="nav-link" data-tab="drivers-sec"><i class="fa-solid fa-id-card"></i> Drivers</a></li>
+        <li><a class="nav-link" data-tab="trips-sec"><i class="fa-solid fa-route"></i> Trips</a></li>
+        <li><a class="nav-link" data-tab="maintenance-sec"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</a></li>
+        <li><a class="nav-link" data-tab="expenses-sec"><i class="fa-solid fa-file-invoice-dollar"></i> Expenses</a></li>
+        <li><a class="nav-link" data-tab="reports-sec"><i class="fa-solid fa-chart-pie"></i> Reports</a></li>
+      </ul>
+    </nav>
+    
+    <div class="header-actions">
+      <!-- Role Switcher for RBAC -->
+      <div class="select-wrapper">
+        <select id="role-selector" class="role-select" title="Switch User Role for RBAC simulation">
+          <option value="Fleet Manager">Fleet Manager</option>
+          <option value="Driver">Driver / Operator</option>
+          <option value="Safety Officer">Safety Officer</option>
+          <option value="Financial Analyst">Financial Analyst</option>
+        </select>
+      </div>
+      
+      <!-- Theme Switcher -->
+      <button id="theme-toggle" class="theme-toggle" title="Toggle Theme"><i class="fa-solid fa-sun"></i></button>
+      
+      <!-- Reset Store -->
+      <button id="reset-db" class="reset-btn" title="Reset Database State"><i class="fa-solid fa-rotate-left"></i></button>
+    </div>
+  </header>
+
+  <main>
+    
+    <!-- KPI Metrics Ribbon (Dynamic) -->
+    <section class="kpi-container">
+      <div class="kpi-card" id="kpi-active-v">
+        <div class="kpi-header">
+          <span class="kpi-title">Active Vehicles</span>
+          <i class="fa-solid fa-truck kpi-icon"></i>
+        </div>
+        <div class="kpi-value" id="val-active-vehicles">0</div>
+      </div>
+      <div class="kpi-card kpi-available" id="kpi-avail-v">
+        <div class="kpi-header">
+          <span class="kpi-title">Available Vehicles</span>
+          <i class="fa-solid fa-circle-check kpi-icon"></i>
+        </div>
+        <div class="kpi-value" id="val-avail-vehicles">0</div>
+      </div>
+      <div class="kpi-card kpi-maintenance" id="kpi-shop-v">
+        <div class="kpi-header">
+          <span class="kpi-title">In Maintenance</span>
+          <i class="fa-solid fa-wrench kpi-icon"></i>
+        </div>
+        <div class="kpi-value" id="val-maint-vehicles">0</div>
+      </div>
+      <div class="kpi-card kpi-trips" id="kpi-active-t">
+        <div class="kpi-header">
+          <span class="kpi-title">Active Trips</span>
+          <i class="fa-solid fa-route kpi-icon"></i>
+        </div>
+        <div class="kpi-value" id="val-active-trips">0</div>
+      </div>
+      <div class="kpi-card" id="kpi-pend-t">
+        <div class="kpi-header">
+          <span class="kpi-title">Pending Trips</span>
+          <i class="fa-solid fa-clock kpi-icon"></i>
+        </div>
+        <div class="kpi-value" id="val-pending-trips">0</div>
+      </div>
+      <div class="kpi-card kpi-available" id="kpi-duty-d">
+        <div class="kpi-header">
+          <span class="kpi-title">Drivers On Duty</span>
+          <i class="fa-solid fa-user-check kpi-icon"></i>
+        </div>
+        <div class="kpi-value" id="val-drivers-onduty">0</div>
+      </div>
+      <div class="kpi-card kpi-utilization" id="kpi-util">
+        <div class="kpi-header">
+          <span class="kpi-title">Fleet Utilization</span>
+          <i class="fa-solid fa-percent kpi-icon"></i>
+        </div>
+        <div class="kpi-value" id="val-utilization">0%</div>
+      </div>
+    </section>
+
+    <!-- SECTION: DASHBOARD -->
+    <section id="dashboard-sec" class="page-section active">
+      <div class="dashboard-grid">
+        <!-- Main Panel: Charts -->
+        <div class="glass-panel">
+          <div class="panel-title">
+            <span>Fleet Analytics Dashboard</span>
+            <div style="font-size: 0.8rem; font-weight: normal; color: var(--text-secondary);">Real-time Insights</div>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-box">
+              <h4 style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 0.5rem; text-align:center;">Vehicle ROI Comparison (%)</h4>
+              <div class="chart-container">
+                <canvas id="roiChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-box">
+              <h4 style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 0.5rem; text-align:center;">Fleet Status Distribution</h4>
+              <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right Panel: Audit Logs / Notifications -->
+        <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div class="panel-title">
+              <span>Operational Feed</span>
+              <i class="fa-solid fa-bell" style="color: var(--accent-color);"></i>
+            </div>
+            <ul id="audit-feed" class="audit-list">
+              <!-- Filled via JavaScript -->
+            </ul>
+          </div>
+          <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <h4 style="font-size:0.85rem; margin-bottom:0.5rem;">Role-Based Simulation Tip:</h4>
+            <p style="font-size:0.75rem; color:var(--text-secondary);" id="rbac-hint-box">
+              Current Role: <strong>Fleet Manager</strong>. You have full access to add, edit, and dispatch. Switch roles in the header to view constrained dashboards.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: VEHICLE REGISTRY -->
+    <section id="vehicles-sec" class="page-section">
+      <div class="glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fa-solid fa-bus"></i>
+            <span>Vehicle Registry</span>
+          </div>
+          <div class="section-actions">
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="vehicle-search" class="input-field" placeholder="Search vehicle reg no, model...">
+            </div>
+            <div class="select-wrapper">
+              <select id="vehicle-filter-type" class="role-select" style="min-width: 130px;" title="Filter by vehicle type">
+                <option value="">All Types</option>
+                <option value="Van">Van</option>
+                <option value="Box Truck">Box Truck</option>
+                <option value="Heavy Truck">Heavy Truck</option>
+              </select>
+            </div>
+            <div class="select-wrapper">
+              <select id="vehicle-filter-status" class="role-select" style="min-width: 130px;" title="Filter by vehicle status">
+                <option value="">All Statuses</option>
+                <option value="Available">Available</option>
+                <option value="On Trip">On Trip</option>
+                <option value="In Shop">In Shop</option>
+                <option value="Retired">Retired</option>
+              </select>
+            </div>
+            <button id="add-vehicle-btn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Vehicle</button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Reg Number</th>
+                <th>Model Name</th>
+                <th>Type</th>
+                <th>Max Capacity</th>
+                <th>Odometer</th>
+                <th>Acquisition Cost</th>
+                <th>Status</th>
+                <th>Documents</th>
+                <th style="width: 120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vehicle-table-body">
+              <!-- Populated via Javascript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: DRIVER MANAGEMENT -->
+    <section id="drivers-sec" class="page-section">
+      <!-- Expiry Alert Widget -->
+      <div id="license-expiry-alerts"></div>
+
+      <div class="glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fa-solid fa-id-card"></i>
+            <span>Driver Profiles</span>
+          </div>
+          <div class="section-actions">
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="driver-search" class="input-field" placeholder="Search driver name, license...">
+            </div>
+            <div class="select-wrapper">
+              <select id="driver-filter-status" class="role-select" style="min-width: 130px;" title="Filter by driver status">
+                <option value="">All Statuses</option>
+                <option value="Available">Available</option>
+                <option value="On Trip">On Trip</option>
+                <option value="Off Duty">Off Duty</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+            <button id="add-driver-btn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Driver</button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Driver Name</th>
+                <th>License Number</th>
+                <th>Category</th>
+                <th>Expiry Date</th>
+                <th>Contact</th>
+                <th>Safety Score</th>
+                <th>Status</th>
+                <th style="width: 120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="driver-table-body">
+              <!-- Populated via Javascript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: TRIP MANAGEMENT -->
+    <section id="trips-sec" class="page-section">
+      <div class="glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fa-solid fa-route"></i>
+            <span>Trip Dispatch Operations</span>
+          </div>
+          <div class="section-actions">
+            <div class="select-wrapper">
+              <select id="trip-filter-status" class="role-select" style="min-width: 140px;" title="Filter by trip status">
+                <option value="">All Trip Lifecycles</option>
+                <option value="Draft">Draft</option>
+                <option value="Dispatched">Dispatched</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <button id="create-trip-btn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Dispatch New Trip</button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Trip ID</th>
+                <th>Source & Destination</th>
+                <th>Vehicle / Driver</th>
+                <th>Cargo Weight</th>
+                <th>Distance</th>
+                <th>Odometer Range</th>
+                <th>Fuel (L)</th>
+                <th>Revenue</th>
+                <th>Status</th>
+                <th style="width: 250px; text-align: center;">Controls</th>
+              </tr>
+            </thead>
+            <tbody id="trip-table-body">
+              <!-- Populated via Javascript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: MAINTENANCE WORKFLOW -->
+    <section id="maintenance-sec" class="page-section">
+      <div class="dashboard-grid" style="grid-template-columns: 1fr 2fr;">
+        <!-- Left Form: Create Maintenance Record -->
+        <div class="glass-panel">
+          <div class="panel-title">
+            <span>Log Maintenance Event</span>
+          </div>
+          <form id="maintenance-form">
+            <div class="form-group">
+              <label for="maint-vehicle-select">Select Vehicle</label>
+              <div class="select-wrapper">
+                <select id="maint-vehicle-select" class="form-control" required>
+                  <option value="">-- Choose Available/On Trip --</option>
+                  <!-- Populated dynamically (shows active list) -->
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="maint-desc">Service Description</label>
+              <textarea id="maint-desc" class="form-control" rows="3" placeholder="Oil Change, Tire Alignment, Brake replacements..." required></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="maint-cost">Estimated Cost ($)</label>
+                <input type="number" id="maint-cost" class="form-control" min="0" value="150" required>
+              </div>
+              <div class="form-group">
+                <label for="maint-date">Date</label>
+                <input type="date" id="maint-date" class="form-control" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-screwdriver-wrench"></i> Open Shop Record</button>
+          </form>
+        </div>
+
+        <!-- Right Table: Active and Past logs -->
+        <div class="glass-panel">
+          <div class="panel-title">
+            <span>Maintenance History & Logs</span>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Service Performed</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Cost ($)</th>
+                  <th>Status</th>
+                  <th style="width: 100px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="maintenance-table-body">
+                <!-- Populated via Javascript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: FUEL & EXPENSES -->
+    <section id="expenses-sec" class="page-section">
+      <div class="dashboard-grid">
+        <!-- Log Form Panel -->
+        <div class="glass-panel" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- Fuel Logging -->
+          <div>
+            <h3 style="font-size: 1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.25rem; margin-bottom:0.75rem;">Log Fuel Refill</h3>
+            <form id="fuel-log-form">
+              <div class="form-group">
+                <label for="fuel-vehicle-select">Vehicle</label>
+                <div class="select-wrapper">
+                  <select id="fuel-vehicle-select" class="form-control" required>
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="fuel-liters">Liters (L)</label>
+                  <input type="number" id="fuel-liters" class="form-control" min="1" placeholder="40" required>
+                </div>
+                <div class="form-group">
+                  <label for="fuel-cost">Total Cost ($)</label>
+                  <input type="number" id="fuel-cost" class="form-control" min="1" placeholder="80" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-gas-pump"></i> Log Fuel Receipt</button>
+            </form>
+          </div>
+
+          <!-- Other Expense Logging -->
+          <div>
+            <h3 style="font-size: 1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.25rem; margin-bottom:0.75rem;">Log Additional Expense</h3>
+            <form id="expense-log-form">
+              <div class="form-group">
+                <label for="expense-vehicle-select">Vehicle</label>
+                <div class="select-wrapper">
+                  <select id="expense-vehicle-select" class="form-control" required>
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="expense-type">Type</label>
+                  <div class="select-wrapper">
+                    <select id="expense-type" class="form-control" required>
+                      <option value="Toll">Toll Fee</option>
+                      <option value="Permit">Road Permit</option>
+                      <option value="Insurance">Insurance Surcharge</option>
+                      <option value="Other">Other Miscellaneous</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="expense-cost">Cost ($)</label>
+                  <input type="number" id="expense-cost" class="form-control" min="1" placeholder="50" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-receipt"></i> Log Expense Card</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- History Listings -->
+        <div class="glass-panel">
+          <div class="panel-title">
+            <span>Fuel & Expense Receipts</span>
+          </div>
+          <div style="max-height: 480px; overflow-y: auto;">
+            <table style="font-size: 0.85rem;">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Details</th>
+                  <th>Total Cost</th>
+                </tr>
+              </thead>
+              <tbody id="expense-table-body">
+                <!-- Populated via Javascript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: REPORTS & ANALYTICS -->
+    <section id="reports-sec" class="page-section">
+      <div class="glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Fleet Utilization & ROI Report</span>
+          </div>
+          <div class="section-actions">
+            <button id="export-csv-btn" class="btn btn-secondary"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            <button id="export-pdf-btn" class="btn btn-secondary"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Vehicle Reg No</th>
+                <th>Type</th>
+                <th>Acquisition Cost</th>
+                <th>Distance Traveled</th>
+                <th>Total Fuel Consumed</th>
+                <th>Avg Fuel Efficiency</th>
+                <th>Total Fuel Cost</th>
+                <th>Total Maintenance</th>
+                <th>Total Expenses</th>
+                <th>Total Revenue</th>
+                <th style="font-weight: 700; color: var(--accent-color);">Vehicle ROI (%)</th>
+              </tr>
+            </thead>
+            <tbody id="reports-table-body">
+              <!-- Populated via Javascript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- MODAL: ADD / EDIT VEHICLE -->
+  <div id="vehicle-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="vehicle-modal-title">Add New Vehicle</h3>
+        <button class="modal-close" data-close="vehicle-modal">&times;</button>
+      </div>
+      <form id="vehicle-form">
+        <div class="modal-body">
+          <input type="hidden" id="vehicle-id">
+          <div class="form-group">
+            <label for="vehicle-reg">Registration Number (Unique)</label>
+            <input type="text" id="vehicle-reg" class="form-control" placeholder="e.g. VAN-05" required>
+          </div>
+          <div class="form-group">
+            <label for="vehicle-name">Model Name</label>
+            <input type="text" id="vehicle-name" class="form-control" placeholder="e.g. Ford Transit" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="vehicle-type">Vehicle Type</label>
+              <div class="select-wrapper">
+                <select id="vehicle-type" class="form-control" required>
+                  <option value="Van">Van</option>
+                  <option value="Box Truck">Box Truck</option>
+                  <option value="Heavy Truck">Heavy Truck</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="vehicle-capacity">Max Capacity (kg)</label>
+              <input type="number" id="vehicle-capacity" class="form-control" min="1" placeholder="500" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="vehicle-odometer">Current Odometer (km)</label>
+              <input type="number" id="vehicle-odometer" class="form-control" min="0" placeholder="10000" required>
+            </div>
+            <div class="form-group">
+              <label for="vehicle-cost">Acquisition Cost ($)</label>
+              <input type="number" id="vehicle-cost" class="form-control" min="0" placeholder="25000" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="vehicle-status">Initial Status</label>
+            <div class="select-wrapper">
+              <select id="vehicle-status" class="form-control" required>
+                <option value="Available">Available</option>
+                <option value="On Trip">On Trip</option>
+                <option value="In Shop">In Shop</option>
+                <option value="Retired">Retired</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="vehicle-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Asset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT DRIVER -->
+  <div id="driver-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="driver-modal-title">Add Driver Profile</h3>
+        <button class="modal-close" data-close="driver-modal">&times;</button>
+      </div>
+      <form id="driver-form">
+        <div class="modal-body">
+          <input type="hidden" id="driver-id">
+          <div class="form-group">
+            <label for="driver-name">Driver Full Name</label>
+            <input type="text" id="driver-name" class="form-control" placeholder="e.g. Alex Rivera" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="driver-license">License Number</label>
+              <input type="text" id="driver-license" class="form-control" placeholder="DL-1234567" required>
+            </div>
+            <div class="form-group">
+              <label for="driver-category">License Category</label>
+              <input type="text" id="driver-category" class="form-control" placeholder="e.g. Commercial (Class A)" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="driver-expiry">License Expiry Date</label>
+              <input type="date" id="driver-expiry" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="driver-safety">Safety Score (0 - 100)</label>
+              <input type="number" id="driver-safety" class="form-control" min="0" max="100" placeholder="95" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="driver-contact">Contact Number</label>
+            <input type="text" id="driver-contact" class="form-control" placeholder="+1 (555) 123-4567" required>
+          </div>
+          <div class="form-group">
+            <label for="driver-status">Driver Status</label>
+            <div class="select-wrapper">
+              <select id="driver-status" class="form-control" required>
+                <option value="Available">Available</option>
+                <option value="On Trip">On Trip</option>
+                <option value="Off Duty">Off Duty</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="driver-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DISPATCH NEW TRIP -->
+  <div id="trip-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3>Dispatch New Cargo Trip</h3>
+        <button class="modal-close" data-close="trip-modal">&times;</button>
+      </div>
+      <form id="trip-form">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="trip-source">Source Hub</label>
+              <input type="text" id="trip-source" class="form-control" placeholder="e.g. Warehouse A" required>
+            </div>
+            <div class="form-group">
+              <label for="trip-dest">Destination</label>
+              <input type="text" id="trip-dest" class="form-control" placeholder="e.g. Retail Outlet B" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="trip-vehicle-select">Select Dispatch Vehicle</label>
+            <div class="select-wrapper">
+              <select id="trip-vehicle-select" class="form-control" required>
+                <!-- Populated dynamically (shows Available vehicles) -->
+              </select>
+            </div>
+            <div id="vehicle-load-hint" style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.25rem;"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="trip-driver-select">Select Dispatch Driver</label>
+            <div class="select-wrapper">
+              <select id="trip-driver-select" class="form-control" required>
+                <!-- Populated dynamically (shows Eligible drivers) -->
+              </select>
+            </div>
+            <div id="driver-license-hint" style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.25rem;"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="trip-cargo">Cargo Weight (kg)</label>
+              <input type="number" id="trip-cargo" class="form-control" min="1" placeholder="400" required>
+            </div>
+            <div class="form-group">
+              <label for="trip-distance">Planned Distance (km)</label>
+              <input type="number" id="trip-distance" class="form-control" min="1" placeholder="120" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="trip-revenue">Trip Contract Revenue ($)</label>
+            <input type="number" id="trip-revenue" class="form-control" min="1" placeholder="800" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="trip-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Dispatch Trip</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: COMPLETE TRIP -->
+  <div id="complete-trip-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Complete Operational Trip</h3>
+        <button class="modal-close" data-close="complete-trip-modal">&times;</button>
+      </div>
+      <form id="complete-trip-form">
+        <div class="modal-body">
+          <input type="hidden" id="complete-trip-id">
+          <p style="font-size: 0.85rem; margin-bottom: 1rem; color: var(--text-secondary);" id="complete-trip-summary">
+            Finalize dispatch records for this trip.
+          </p>
+          
+          <div class="form-group">
+            <label for="complete-odo">Final Odometer Reading (km)</label>
+            <input type="number" id="complete-odo" class="form-control" min="1" placeholder="Current + trip distance" required>
+            <div id="complete-odo-hint" style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.25rem;"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="complete-fuel">Actual Fuel Consumed (Liters)</label>
+            <input type="number" id="complete-fuel" class="form-control" min="1" placeholder="e.g. 35" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="complete-trip-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check-double"></i> Complete Trip</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SIMULATE DOCUMENT UPLOAD / MANAGEMENT -->
+  <div id="document-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="document-modal-title">Vehicle Document Registry</h3>
+        <button class="modal-close" data-close="document-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="document-vehicle-id">
+        <p style="font-size: 0.85rem; margin-bottom: 1rem; color: var(--text-secondary);">
+          Manage and review registered compliance certificates, registration papers, and insurance contracts.
+        </p>
+        
+        <div class="glass-panel" style="background: rgba(0,0,0,0.1); margin-bottom:1rem; padding:0.75rem;">
+          <h4 style="font-size: 0.8rem; margin-bottom: 0.5rem; text-transform: uppercase;">Attached Files</h4>
+          <div id="document-list-container" class="doc-grid">
+            <!-- Populated via Javascript -->
+          </div>
+        </div>
+
+        <form id="document-upload-form">
+          <div class="form-group">
+            <label for="doc-name-input">Document Name / Tag</label>
+            <input type="text" id="doc-name-input" class="form-control" placeholder="e.g. Insurance Certificate 2026" required>
+          </div>
+          <div class="form-group">
+            <label for="doc-type-input">Document Category</label>
+            <div class="select-wrapper">
+              <select id="doc-type-input" class="form-control" required>
+                <option value="Registration">Registration Certificate</option>
+                <option value="Insurance">Insurance Policy</option>
+                <option value="Safety">Safety Check Log</option>
+                <option value="Other">Other Compliance Doc</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Document</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Center -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Core Scripts -->
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
