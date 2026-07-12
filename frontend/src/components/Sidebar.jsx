@@ -43,7 +43,7 @@ const RBAC_MATRIX = {
   }
 };
 
-export default function Sidebar({ activeTab, onTabChange, role, onResetDatabase }) {
+export default function Sidebar({ activeTab, onTabChange, role, onResetDatabase, isOpen, onClose }) {
   const permissions = RBAC_MATRIX[role] || {};
 
   const menuItems = [
@@ -58,11 +58,21 @@ export default function Sidebar({ activeTab, onTabChange, role, onResetDatabase 
   ];
 
   return (
-    <aside>
+    <aside className={isOpen ? 'open' : ''}>
       <div>
-        <div className="aside-header">
-          <i className="fa-solid fa-truck-fast"></i>
-          <h2>TransitOps</h2>
+        <div className="aside-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <i className="fa-solid fa-truck-fast"></i>
+            <h2>TransitOps</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="sidebar-close-btn"
+            style={{ display: 'none', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1 }}
+            title="Close Menu"
+          >
+            &times;
+          </button>
         </div>
         <nav>
           <ul>
@@ -78,6 +88,7 @@ export default function Sidebar({ activeTab, onTabChange, role, onResetDatabase 
                     onClick={(e) => {
                       e.preventDefault();
                       onTabChange(item.id);
+                      if (onClose) onClose();
                     }}
                   >
                     <i className={`fa-solid ${item.icon}`}></i> {item.label}

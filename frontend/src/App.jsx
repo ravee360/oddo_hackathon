@@ -64,6 +64,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard-sec');
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // KPI state
   const [kpiActiveVehicles, setKpiActiveVehicles] = useState(0);
@@ -264,18 +265,31 @@ export default function App() {
 
   return (
     <div id="app-container" className="app-container" style={{ display: 'flex' }}>
+      <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}></div>
+
       {/* SIDEBAR NAVIGATION */}
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         role={role}
         onResetDatabase={handleResetDatabase}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* CONTENT PANEL */}
       <div className="content-wrapper">
         {/* Top Bar */}
         <div className="top-bar">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="hamburger-btn"
+            style={{ display: 'none' }}
+            title="Open Navigation"
+          >
+            <i className="fa-solid fa-bars"></i>
+          </button>
+          
           <div className="search-bar-wrapper">
             <i className="fa-solid fa-magnifying-glass"></i>
             <input
