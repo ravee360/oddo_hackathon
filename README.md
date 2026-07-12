@@ -13,6 +13,7 @@ TransitOps is a professional, end-to-end transport operations management platfor
   │    ├── routes/           # REST endpoints mapping
   │    ├── models/           # database client (jsonDb.js) mapping db.json
   │    ├── db.json           # JSON database file
+  │    ├── uploads/          # Physical uploaded binary files on server disk
   │    ├── package.json      # Backend dependencies (Express, CORS)
   │    └── server.js         # Backend server gateway
   ├── frontend/              # React + Vite frontend client
@@ -25,7 +26,7 @@ TransitOps is a professional, end-to-end transport operations management platfor
   │    │    │    ├── Sidebar.jsx     # Navigation visibility based on RBAC matrix
   │    │    │    ├── Dashboard.jsx   # State progress trackers & dispatches table
   │    │    │    ├── Fleet.jsx       # Fleet registry CRUD & file upload specifications
-  │    │    │    ├── Drivers.jsx     # Drivers profiles & license expiry alerts
+  │    │    │    ├── Drivers.jsx     # Drivers profiles, license alerts & email scan outbox
   │    │    │    ├── Trips.jsx       # Dispatch workflows & overload block alerts
   │    │    │    ├── Maintenance.jsx # Maintenance logs & repair logs form
   │    │    │    ├── Expenses.jsx    # Refill fuel logs & miscellaneous double tables
@@ -45,9 +46,10 @@ TransitOps is a professional, end-to-end transport operations management platfor
 1. **Modular Architecture**: Split into a clean MVC backend server and component-based React frontend.
 2. **Interactive Visual Analytics**: Chart.js horizontal bar charts for vehicle ROI and monthly revenue columns.
 3. **Role-Based Access Control (RBAC)**: Supports 4 distinct user profiles (Fleet Manager, Dispatcher, Safety Officer, Financial Analyst) restricting access to forms, buttons, and side tabs.
-4. **Driver Compliance Expiry Banners**: Real-time license scanning alerts for expired licenses (dispatches blocked) or licenses expiring within 30 days.
-5. **Real-time Capacity Checks**: Blocks dispatch creation if the cargo weight exceeds the selected vehicle's payload capacity.
-6. **Active File Upload Selector**: Supports browsing files (`.pdf`, `.png`, `.jpg`, `.jpeg`, `.doc`, `.docx`) inside the compliance modal, automatically pre-populating document names and displaying file sizes.
+4. **Persistent Compliance Uploads**: Supports choosing real document files (`.pdf`, `.png`, `.jpg`, `.jpeg`, `.doc`, `.docx`). Files are uploaded as Base64 binaries, stored physically in the backend `uploads/` folder, and linked in `db.json` for persistence across page refreshes.
+5. **Real-time License Reminders Scan**: safety scanner scans all driver licenses, identifies expired/expiring licenses, drafts professional alerts, and logs them in a simulated mail outbox.
+6. **Real-time Capacity Checks**: Blocks dispatch creation if the cargo weight exceeds the selected vehicle's payload capacity.
+7. **Client-side CSV Exporter**: Generates and downloads a real, formatted `.csv` spreadsheet of the fleet's ledger records directly from the Analytics tab.
 
 ---
 
@@ -85,7 +87,7 @@ This configuration enables instant hot module replacement (HMR) for frontend fil
    npm run dev
    ```
 3. **Open the browser**:
-   Go to: **`http://localhost:5173`**. Vite will proxy all API calls (e.g. `/api/vehicles`) to port `8000` automatically.
+   Go to: **`http://localhost:5173`**. Vite will proxy all API calls (e.g. `/api/vehicles` and `/uploads/*`) to port `8000` automatically.
 
 ---
 
