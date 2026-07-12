@@ -2,6 +2,12 @@
 
 TransitOps is a professional, end-to-end transport operations management platform. It replaces manual paper tracking and spreadsheets with a modern, modular architecture featuring a **React + Vite** frontend and a **Node.js + Express** REST API backend.
 
+## 🌐 Live Demo
+
+The application is deployed and available at:
+
+- https://oddohackathon-production.up.railway.app/
+
 ---
 
 ## 📁 Project Directory Structure
