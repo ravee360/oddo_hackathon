@@ -6,3 +6,9 @@ hackathon_guide.md
 .idea/
 .DS_Store
 Thumbs.db
+
+# Project exclusions
+backend/node_modules/
+oddo_hackathon/
+*.log
+.gemini/

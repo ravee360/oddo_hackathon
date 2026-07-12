@@ -1,61 +1,99 @@
 # TransitOps - Smart Transport Operations Platform
 
-TransitOps is an end-to-end transport operations management platform that replaces paper sheets and spreadsheets. Built specifically to showcase robust business logic, elegant UI/UX design, and role-based permissions in a highly constrained hackathon timeframe.
+TransitOps is a professional, end-to-end transport operations management platform. It replaces manual paper tracking and spreadsheets with a modern, modular architecture featuring a **React + Vite** frontend and a **Node.js + Express** REST API backend.
 
-Live Demo Deployment Ready: Can be staged in seconds on **GitHub Pages**.
+---
+
+## 📁 Project Directory Structure
+
+```text
+/oddo_hackathon
+  ├── backend/               # Node.js + Express backend server
+  │    ├── controllers/      # Route controllers (CRUD logic, capacity weight checks)
+  │    ├── routes/           # REST endpoints mapping
+  │    ├── models/           # database client (jsonDb.js) mapping db.json
+  │    ├── db.json           # JSON database file
+  │    ├── package.json      # Backend dependencies (Express, CORS)
+  │    └── server.js         # Backend server gateway
+  ├── frontend/              # React + Vite frontend client
+  │    ├── public/
+  │    ├── src/
+  │    │    ├── assets/
+  │    │    │    └── index.css  # Unified premium dark/light theme CSS stylesheet
+  │    │    ├── components/     # Modular React components
+  │    │    │    ├── Login.jsx       # Login controls & lockout countdown
+  │    │    │    ├── Sidebar.jsx     # Navigation visibility based on RBAC matrix
+  │    │    │    ├── Dashboard.jsx   # State progress trackers & dispatches table
+  │    │    │    ├── Fleet.jsx       # Fleet registry CRUD & file upload specifications
+  │    │    │    ├── Drivers.jsx     # Drivers profiles & license expiry alerts
+  │    │    │    ├── Trips.jsx       # Dispatch workflows & overload block alerts
+  │    │    │    ├── Maintenance.jsx # Maintenance logs & repair logs form
+  │    │    │    ├── Expenses.jsx    # Refill fuel logs & miscellaneous double tables
+  │    │    │    ├── Analytics.jsx   # Chart.js visual graphics canvas elements
+  │    │    │    └── Settings.jsx    # Configurations save forms & RBAC matrix
+  │    │    ├── App.jsx         # App routing and global state hook
+  │    │    └── main.jsx        # App entry point
+  │    ├── index.html        # Main template including Font Awesome and Chart.js CDNs
+  │    ├── package.json      # React dependencies
+  │    └── vite.config.js    # API proxy configs (redirects /api to port 8000)
+```
 
 ---
 
 ## 🌟 Key Technical Features
 
-1. **Aesthetic Dashboard UI**: Premium design using a custom Glassmorphic Dark & Light theme, custom fonts, responsive metric grids, and dynamic layout reflow.
-2. **Interactive Visual Analytics**: Integrates Chart.js for real-time bar graphs tracking vehicle ROI % and donut charts displaying fleet status distribution.
-3. **localStorage State Persistence**: Simulated relational database schema implemented fully on the client side. Data survives page refreshes. Includes a reset key to wipe adjustments.
-4. **Role-Based Access Control (RBAC) Switcher**: Switch user perspectives (Fleet Manager, Operator/Driver, Safety Officer, Financial Analyst) from the navigation bar. UI layout adjustments block unauthorized form inputs and display unique role hints.
-5. **Driver Compliance Expiry Banners**: Scans driver registries and displays alerts for expired licenses (blocks dispatch) or licenses expiring within 30 days.
-6. **Simulated Document Registry**: Document upload widget supporting file tags (Safety Check, Registration, Insurance Certificate) per vehicle with dynamic counters.
-7. **CSV & Print PDF Exporting**: Dynamic CSV compiler downloads active fleet ROI reports. Supports print-formatted stylesheet for high-quality PDF creation.
-
----
-
-## 💼 Mandatory Business Rules Enforced
-
-* **Unique Identifiers**: Registration number validation guarantees no duplicates are saved.
-* **Dispatch Eligibility Verification**:
-  * Blocks retired or in-shop vehicles from dispatch selections.
-  * Blocks drivers with expired licenses or Suspended status from trips.
-  * Blocks drivers or vehicles already marked "On Trip" from assignment.
-* **Capacity Constraints**: Blocks dispatch if Cargo Weight exceeds the chosen vehicle's payload capacity limit.
-* **Automatic Status Transitions**:
-  * Dispatching a trip transitions both vehicle and driver status to **On Trip**.
-  * Completing a trip restores both vehicle and driver status back to **Available** and updates the vehicle's odometer.
-  * Cancelling a dispatched trip restores both to **Available**.
-* **Maintenance Logic**:
-  * Logging a vehicle into maintenance switches its status to **In Shop** (removing it from dispatch pools).
-  * Closing a maintenance log restores status to **Available** (unless retired).
+1. **Modular Architecture**: Split into a clean MVC backend server and component-based React frontend.
+2. **Interactive Visual Analytics**: Chart.js horizontal bar charts for vehicle ROI and monthly revenue columns.
+3. **Role-Based Access Control (RBAC)**: Supports 4 distinct user profiles (Fleet Manager, Dispatcher, Safety Officer, Financial Analyst) restricting access to forms, buttons, and side tabs.
+4. **Driver Compliance Expiry Banners**: Real-time license scanning alerts for expired licenses (dispatches blocked) or licenses expiring within 30 days.
+5. **Real-time Capacity Checks**: Blocks dispatch creation if the cargo weight exceeds the selected vehicle's payload capacity.
+6. **Active File Upload Selector**: Supports browsing files (`.pdf`, `.png`, `.jpg`, `.jpeg`, `.doc`, `.docx`) inside the compliance modal, automatically pre-populating document names and displaying file sizes.
 
 ---
 
 ## 🚀 How to Run Locally
 
-You do not need heavy web servers, databases, or npm dependency compiling. TransitOps is fully self-contained!
+### Option A: Single Port Mode (Express Server serves Compiled React UI)
+The Express backend server dynamically checks if the compiled React bundle exists and serves it statically on port `8000`.
 
-### Option A: Open Directly
-Double-click [index.html](file:///d:/Odoo/index.html) in your browser. All scripts and stylesheets link relatively.
-
-### Option B: Local HTTP Server (Recommended)
-From your terminal, launch a simple web server:
-```bash
-# Using Python
-python -m http.server 8000
-
-# Using Node (npx)
-npx http-server -p 8000
-```
-Then visit: `http://localhost:8000` in your web browser.
+1. **Install backend dependencies**:
+   ```bash
+   cd backend
+   npm install
+   ```
+2. **Start the backend server**:
+   ```bash
+   node server.js
+   ```
+3. **Open the browser**:
+   Go to: **[http://localhost:8000](http://localhost:8000)** to view the complete React + Node.js application.
 
 ---
 
-## 👥 Hackathon Team Playbook
+### Option B: Active Development Mode (Dual Ports with Hot Reload)
+This configuration enables instant hot module replacement (HMR) for frontend files during development.
 
-Refer to [hackathon_guide.md](file:///d:/Odoo/hackathon_guide.md) for the exact work division and Git collaboration guidelines.
+1. **Start the Express API server** (Port 8000):
+   ```bash
+   cd backend
+   node server.js
+   ```
+2. **Start the Vite dev server** (Port 5173):
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+3. **Open the browser**:
+   Go to: **`http://localhost:5173`**. Vite will proxy all API calls (e.g. `/api/vehicles`) to port `8000` automatically.
+
+---
+
+## 🔑 Login Credentials
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Dispatcher** | `Raven.k@transitops.in` | `password123` |
+| **Fleet Manager** | `manager@transitops.in` | `password123` |
+| **Safety Officer** | `safety@transitops.in` | `password123` |
+| **Financial Analyst** | `finance@transitops.in` | `password123` |

@@ -1,6 +1,8 @@
-// TransitOps - Client-Side localStorage database management
+// TransitOps - File-Based JSON Database Client
+const fs = require('fs');
+const path = require('path');
 
-const DB_KEY = 'transitops_db_state';
+const DB_FILE = path.join(__dirname, '..', 'db.json');
 
 // Default Seed Data
 const DEFAULT_DB = {
@@ -15,7 +17,7 @@ const DEFAULT_DB = {
     { id: 'd1', name: 'Alex Rivera', licenseNo: 'DL-9847291', licenseCategory: 'Commercial (Class A)', licenseExpiry: '2028-05-14', contact: '+1 (555) 234-5678', safetyScore: 95, status: 'Available' },
     { id: 'd2', name: 'Sarah Jenkins', licenseNo: 'DL-3829102', licenseCategory: 'Standard (Class C)', licenseExpiry: '2027-11-20', contact: '+1 (555) 876-5432', safetyScore: 88, status: 'On Trip' },
     { id: 'd3', name: 'Michael Chen', licenseNo: 'DL-4920194', licenseCategory: 'Commercial (Class B)', licenseExpiry: '2026-02-15', contact: '+1 (555) 345-6789', safetyScore: 92, status: 'Available' },
-    { id: 'd4', name: 'Marcus Brody', licenseNo: 'DL-1029384', licenseCategory: 'Commercial (Class A)', licenseExpiry: '2024-01-10', contact: '+1 (555) 901-2345', safetyScore: 78, status: 'Off Duty' }, // Expired
+    { id: 'd4', name: 'Marcus Brody', licenseNo: 'DL-1029384', licenseCategory: 'Commercial (Class A)', licenseExpiry: '2024-01-10', contact: '+1 (555) 901-2345', safetyScore: 78, status: 'Off Duty' },
     { id: 'd5', name: 'Dave Miller', licenseNo: 'DL-5839201', licenseCategory: 'Standard (Class C)', licenseExpiry: '2027-08-30', contact: '+1 (555) 456-7890', safetyScore: 48, status: 'Suspended' }
   ],
   trips: [
@@ -38,71 +40,80 @@ const DEFAULT_DB = {
   ]
 };
 
-// Database class
-class TransitOpsDB {
+class JsonDb {
   constructor() {
     this.init();
   }
 
   init() {
-    if (!localStorage.getItem(DB_KEY)) {
+    if (!fs.existsSync(DB_FILE)) {
+      this.save(DEFAULT_DB);
+      return;
+    }
+    try {
+      const data = fs.readFileSync(DB_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      if (!parsed.vehicles || parsed.vehicles.length === 0) {
+        this.save(DEFAULT_DB);
+      }
+    } catch (e) {
       this.save(DEFAULT_DB);
     }
   }
 
-  // Load the full database
   load() {
     try {
-      const data = localStorage.getItem(DB_KEY);
-      return JSON.parse(data) || DEFAULT_DB;
+      if (!fs.existsSync(DB_FILE)) {
+        this.init();
+      }
+      const data = fs.readFileSync(DB_FILE, 'utf8');
+      return JSON.parse(data);
     } catch (e) {
-      console.error('Error loading database, resetting to default:', e);
+      console.error('Error reading JSON DB file:', e);
       return DEFAULT_DB;
     }
   }
 
-  // Save the full database
   save(data) {
-    localStorage.setItem(DB_KEY, JSON.stringify(data));
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch (e) {
+      console.error('Error writing to JSON DB file:', e);
+    }
   }
 
-  // Generic getter
   getAll(entity) {
     const db = this.load();
     return db[entity] || [];
   }
 
-  // Generic details getter
   getById(entity, id) {
     const list = this.getAll(entity);
     return list.find(item => item.id === id);
   }
 
-  // Add item
   add(entity, record) {
     const db = this.load();
     if (!db[entity]) db[entity] = [];
     
-    // Generate id
+    // Generate simple ID
     record.id = entity.charAt(0) + Math.random().toString(36).substr(2, 9);
     db[entity].push(record);
     this.save(db);
     return record;
   }
 
-  // Update item
   update(entity, id, updatedRecord) {
     const db = this.load();
     const index = db[entity].findIndex(item => item.id === id);
     if (index !== -1) {
       db[entity][index] = { ...db[entity][index], ...updatedRecord };
       this.save(db);
-      return true;
+      return db[entity][index];
     }
-    return false;
+    return null;
   }
 
-  // Delete item
   delete(entity, id) {
     const db = this.load();
     const initialLength = db[entity].length;
@@ -114,18 +125,14 @@ class TransitOpsDB {
     return false;
   }
 
-  // Check unique constraints (e.g. regNo)
   isRegNoUnique(regNo, excludeId = null) {
     const vehicles = this.getAll('vehicles');
     return !vehicles.some(v => v.regNo.toUpperCase() === regNo.toUpperCase() && v.id !== excludeId);
   }
 
-  // Reset database to defaults
   reset() {
     this.save(DEFAULT_DB);
   }
 }
 
-// Instantiate database globally
-const db = new TransitOpsDB();
-window.dbInstance = db; // Export to window for debugging
+module.exports = new JsonDb();
