@@ -1,0 +1,8 @@
+# Ignore team guide
+hackathon_guide.md
+
+# Ignore local editors and systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
