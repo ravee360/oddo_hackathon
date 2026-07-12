@@ -167,8 +167,62 @@ export default function Analytics({ currencySymbol, distanceUnit, logAudit, show
   const avgROI = totalAcq > 0 ? ((netProfit / totalAcq) * 100).toFixed(1) : '0.0';
 
   const handleExportCSV = () => {
-    logAudit('Exported cost ledger as CSV.');
-    showToast('CSV export downloaded.', 'success');
+    try {
+      const headers = [
+        'Vehicle Reg No',
+        'Type',
+        'Acquisition Cost',
+        'Distance Traveled',
+        'Total Fuel Consumed',
+        'Avg Fuel Efficiency',
+        'Total Fuel Cost',
+        'Total Maintenance Cost',
+        'Total Other Expenses',
+        'Total Revenue',
+        'Vehicle ROI (%)'
+      ];
+
+      const rows = vehicles.map(v => {
+        const f = getVehicleFinancesLocal(v.id, v.acquisitionCost);
+        return [
+          v.regNo,
+          v.type,
+          v.acquisitionCost,
+          `${f.distance} ${distanceUnit}`,
+          `${f.fuelLiters} L`,
+          `${f.efficiency} ${distanceUnit}/L`,
+          f.fuelCost,
+          f.maintCost,
+          f.otherCost,
+          f.revenue,
+          `${f.roi}%`
+        ];
+      });
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(val => {
+          const cleanVal = String(val).replace(/"/g, '""');
+          return cleanVal.includes(',') ? `"${cleanVal}"` : cleanVal;
+        }).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `transitops_fleet_ledger_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      logAudit('Exported cost ledger as CSV.');
+      showToast('CSV export downloaded successfully.', 'success');
+    } catch (e) {
+      console.error(e);
+      showToast('Failed to compile CSV data.', 'error');
+    }
   };
 
   const handleExportPDF = () => {
